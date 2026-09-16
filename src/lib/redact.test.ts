@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import {redact} from './redact';import {adaptStatus} from './transport';
+describe('monitor boundary',()=>{it('redacts credentials before display',()=>expect(redact('Authorization: Bearer abc.123 API_KEY=secret')).not.toContain('abc.123'));it('adapts status without mutation controls',()=>expect(JSON.stringify(adaptStatus({spend:{total:'1.20'}}))).not.toMatch(/kill|execute|send|write/i))});

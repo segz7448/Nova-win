@@ -1,0 +1,2 @@
+import{readFileSync,readdirSync}from'node:fs';import{join}from'node:path';
+const walk=d=>readdirSync(d,{withFileTypes:true}).flatMap(x=>x.isDirectory()?walk(join(d,x.name)):[join(d,x.name)]);const files=walk('src');const body=files.filter(f=>/\.(ts|tsx)$/.test(f)).map(f=>readFileSync(f,'utf8')).join('\n');const banned=['sendMessage','executeCommand','killAgent','chatInput'];for(const x of banned)if(body.includes(x))throw Error(`control boundary violated: ${x}`);console.log(`Verified ${files.length} source files: read-only control boundary intact.`)

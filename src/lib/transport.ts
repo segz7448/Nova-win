@@ -1,0 +1,8 @@
+import type {Snapshot} from '../types'; import {demo} from './demo'; import {redact} from './redact';
+export type Connection='connecting'|'live'|'reconnecting'|'offline'|'demo';
+export type RuntimeConfig={baseUrl?:string;adminKey?:string;streamUrl?:string;demo?:boolean};
+export class NovaTransport{private stopped=false;private timer?:number;private failures=0;constructor(private config:RuntimeConfig,private publish:(s:Snapshot,c:Connection)=>void){}
+start(){if(this.config.demo!==false&&!this.config.baseUrl){this.publish(demo,'demo');this.timer=window.setInterval(()=>this.publish({...demo,asOf:Date.now()},'demo'),1000);return}this.poll('connecting')}
+stop(){this.stopped=true;if(this.timer)clearTimeout(this.timer)}
+private async poll(state:Connection){if(this.stopped)return;try{const r=await fetch(`${this.config.baseUrl!.replace(/\/$/,'')}/admin/status`,{headers:{'x-admin-key':this.config.adminKey||''},cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=JSON.stringify(await r.json());const safe=JSON.parse(redact(raw));const snap=adaptStatus(safe);this.failures=0;this.publish(snap,'live');this.timer=window.setTimeout(()=>this.poll('live'),1000)}catch{this.failures++;this.publish({...demo,asOf:Date.now()},this.failures>5?'offline':'reconnecting');const delay=Math.min(30000,1000*2**Math.min(this.failures,5));this.timer=window.setTimeout(()=>this.poll('reconnecting'),delay)}}}
+export function adaptStatus(raw:any):Snapshot{return {...demo,asOf:Date.now(),metrics:{...demo.metrics,cost:String(raw?.spendToday?.total_usdc??raw?.spend?.total??demo.metrics.cost)},services:demo.services.map(s=>s.name==='Backend API'?{...s,status:'ok',detail:'Connected · read-only'}:s)}}

@@ -1,0 +1,64 @@
+{
+  "name": "nova-win",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read-only Windows observability console for NOVA AUTOMATON",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build:web": "vite build",
+    "build:electron": "tsc -p electron/tsconfig.json",
+    "build": "npm run typecheck && npm run test && npm run build:web && npm run build:electron",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ui": "playwright test",
+    "verify": "node scripts/verify.mjs",
+    "dist:win": "npm run build && electron-builder --win nsis portable --x64"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "build": {
+    "appId": "dev.nova.monitor",
+    "productName": "NOVA Monitor",
+    "artifactName": "NOVA-Monitor-${version}-${arch}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "portable": {
+      "artifactName": "NOVA-Monitor-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "type": "module"
+}
